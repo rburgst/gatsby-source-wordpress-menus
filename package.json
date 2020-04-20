@@ -5,8 +5,18 @@
   "main": "index.js",
   "author": "Rainer Burgstaller",
   "license": "MIT",
+  "keywords": [
+    "gatsby",
+    "gatsby-plugin",
+    "wordpress",
+    "wpgraphql",
+    "WPML"
+  ],
   "dependencies": {
     "node-fetch": "^2.6.0",
     "query-string": "^6.12.1"
+  },
+  "devDependencies": {
+    "prettier": "^2.0.4"
   }
 }

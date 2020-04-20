@@ -1,9 +1,9 @@
-const fetch = require("node-fetch")
-const queryString = require("query-string")
+const fetch = require('node-fetch')
+const queryString = require('query-string')
 
 function makeRelativeUrl(url, wordpressUrl) {
   if (url && url.startsWith(wordpressUrl)) {
-    return url.replace(wordpressUrl, "")
+    return url.replace(wordpressUrl, '')
   }
   return url
 }
@@ -50,9 +50,7 @@ async function processLocation(location, language, baseUrl, wordpressUrl) {
 }
 
 function createNodeData(location, language, createNodeId, createContentDigest) {
-  const nodeId = createNodeId(
-    `wp-menu-location-${location.slug}-term-${location.menu.term_id}`
-  )
+  const nodeId = createNodeId(`wp-menu-location-${location.slug}-term-${location.menu.term_id}`)
   const nodeContent = JSON.stringify(location)
   const nodeData = Object.assign({}, location, {
     id: nodeId,
@@ -67,10 +65,7 @@ function createNodeData(location, language, createNodeId, createContentDigest) {
   return nodeData
 }
 
-exports.sourceNodes = async (
-  { actions, createNodeId, createContentDigest },
-  configOptions
-) => {
+exports.sourceNodes = async ({ actions, createNodeId, createContentDigest }, configOptions) => {
   const { createNode } = actions
   // Gatsby adds a configOption that's not needed for this plugin, delete it
   delete configOptions.plugins
@@ -78,12 +73,12 @@ exports.sourceNodes = async (
   let { wordpressUrl, languages, enableWpml } = configOptions
 
   if (!languages && !enableWpml) {
-    languages = ["*"]
+    languages = ['*']
   }
 
   const baseUrl = `${wordpressUrl}/wp-json/menus/v1`
 
-  console.log("Querying wordpress menus from ", baseUrl)
+  console.log('Querying wordpress menus from ', baseUrl)
 
   for (const language of languages) {
     // fetch the menu
@@ -95,20 +90,10 @@ exports.sourceNodes = async (
     const locations = await result.json()
 
     for (const location of Object.keys(locations)) {
-      console.log("processing location", location, "of", url, "in", language)
-      const enhancedLocation = await processLocation(
-        locations[location],
-        language,
-        baseUrl,
-        wordpressUrl
-      )
+      console.log('processing location', location, 'of', url, 'in', language)
+      const enhancedLocation = await processLocation(locations[location], language, baseUrl, wordpressUrl)
       // now we have the location plus menu
-      const node = createNodeData(
-        enhancedLocation,
-        language,
-        createNodeId,
-        createContentDigest
-      )
+      const node = createNodeData(enhancedLocation, language, createNodeId, createContentDigest)
       createNode(node)
     }
   }
