@@ -5,6 +5,13 @@
   "main": "index.js",
   "author": "Rainer Burgstaller",
   "license": "MIT",
+  "repository": {
+    "url": "https://github.com/rburgst/gatsby-source-wordpress-menus",
+    "type": "git"
+  },
+  "bugs": {
+    "url": "https://github.com/rburgst/gatsby-source-wordpress-menus/issues"
+  },
   "keywords": [
     "gatsby",
     "gatsby-plugin",
@@ -13,8 +20,7 @@
     "WPML"
   ],
   "dependencies": {
-    "node-fetch": "^2.6.0",
-    "query-string": "^6.12.1"
+    "node-fetch": "^2.6.0"
   },
   "devDependencies": {
     "prettier": "^2.0.4"
