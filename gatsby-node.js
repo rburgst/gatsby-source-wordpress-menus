@@ -1,5 +1,4 @@
 const fetch = require('node-fetch')
-const queryString = require('query-string')
 
 function makeRelativeUrl(url, wordpressUrl) {
   if (url && url.startsWith(wordpressUrl)) {
@@ -41,12 +40,13 @@ function rewriteUrls(menuData, wordpressUrl) {
 
 async function processLocation(location, language, baseUrl, wordpressUrl) {
   const menuTermId = location.menu.term_id
-  const menuUrl = `${baseUrl}/menus/${menuTermId}`
+  const urlParams = language !== '*' ? `?wpml_language=${language}` : ''
+  const menuUrl = `${baseUrl}/menus/${menuTermId}${urlParams}`
   const result = await fetch(menuUrl)
   const body = await result.json()
 
   const rewrittenBody = rewriteUrls(body, wordpressUrl)
-  return { ...location, menuData: body, language }
+  return { ...location, menuData: rewrittenBody, language }
 }
 
 function createNodeData(location, language, createNodeId, createContentDigest) {
