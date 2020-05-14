@@ -1,6 +1,6 @@
 {
   "name": "gatsby-source-wordpress-menus",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "gatsby source plugin to fetch menus via wordpress rest api",
   "main": "index.js",
   "author": "Rainer Burgstaller",
