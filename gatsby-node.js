@@ -72,7 +72,7 @@ async function getCachedOrFetch(cache, doAllowCache, url, reporter, doSetCacheTi
     locations = await result.json()
     await cache.set(url, locations)
     if (doSetCacheTimestamp) {
-      await cache.set("cacheTime", new Date().toISOString())
+      await cache.set('cacheTime', new Date().toISOString())
     }
   } else {
     reporter.info(`  got ${url} from cache`)
@@ -96,12 +96,15 @@ exports.sourceNodes = async ({ actions, getCache, createNodeId, createContentDig
 
   let doAllowCache = allowCache
   if (allowCache) {
-    const cacheTimestamp = cache.get('cacheTime')
+    const cacheTimestamp = await cache.get('cacheTime')
     if (cacheTimestamp) {
       const cacheDate = new Date(cacheTimestamp)
       const cacheMillis = cacheDate.getTime()
       const ageInMillis = Date.now() - cacheMillis
       doAllowCache = ageInMillis < (maxCacheDurationSeconds * 1000)
+      if (!doAllowCache) {
+        reporter.info(`not using cache as its too old ${ageInMillis / 1000}s`)
+      }
     }
   }
 
