@@ -75,7 +75,7 @@ async function getCachedOrFetch(cache, doAllowCache, url, reporter, doSetCacheTi
       await cache.set("cacheTime", new Date().toISOString())
     }
   } else {
-    reporter.info(`got ${url} from cache`)
+    reporter.info(`  got ${url} from cache`)
   }
   return locations
 }
@@ -105,7 +105,7 @@ exports.sourceNodes = async ({ actions, getCache, createNodeId, createContentDig
     }
   }
 
-  reporter.info('Querying wordpress menus from ', baseUrl)
+  reporter.info(`Querying wordpress menus from ${baseUrl}, cache allowed ${doallowCache}`)
 
   for (const language of languages) {
     // fetch the menu
