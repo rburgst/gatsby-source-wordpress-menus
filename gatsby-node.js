@@ -38,12 +38,12 @@ function rewriteUrls(menuData, wordpressUrl) {
   return result
 }
 
-async function processLocation(location, language, baseUrl, wordpressUrl) {
+async function processLocation(cache, doAllowCache, location, language, baseUrl, wordpressUrl, reporter) {
   const menuTermId = location.menu.term_id
   const urlParams = language !== '*' ? `?wpml_language=${language}` : ''
   const menuUrl = `${baseUrl}/menus/${menuTermId}${urlParams}`
-  const result = await fetch(menuUrl)
-  const body = await result.json()
+
+  let body = await getCachedOrFetch(cache, doAllowCache, menuUrl, reporter)
 
   const rewrittenBody = rewriteUrls(body, wordpressUrl)
   return { ...location, menuData: rewrittenBody, language }
@@ -65,20 +65,47 @@ function createNodeData(location, language, createNodeId, createContentDigest) {
   return nodeData
 }
 
-exports.sourceNodes = async ({ actions, createNodeId, createContentDigest }, configOptions) => {
+async function getCachedOrFetch(cache, doAllowCache, url, reporter, doSetCacheTimestamp = false) {
+  let locations = doAllowCache && await cache.get(url)
+  if (!locations) {
+    const result = await fetch(url)
+    locations = await result.json()
+    await cache.set(url, locations)
+    if (doSetCacheTimestamp) {
+      await cache.set("cacheTime", new Date().toISOString())
+    }
+  } else {
+    reporter.info(`got ${url} from cache`)
+  }
+  return locations
+}
+
+exports.sourceNodes = async ({ actions, getCache, createNodeId, createContentDigest, reporter }, configOptions) => {
   const { createNode } = actions
   // Gatsby adds a configOption that's not needed for this plugin, delete it
   delete configOptions.plugins
 
-  let { wordpressUrl, languages, enableWpml } = configOptions
+  let { wordpressUrl, languages, enableWpml, allowCache = true, maxCacheDurationSeconds = 60 * 60 * 24 } = configOptions
 
   if (!languages && !enableWpml) {
     languages = ['*']
   }
 
   const baseUrl = `${wordpressUrl}/wp-json/menus/v1`
+  const cache = getCache('gatsby-source-wordpress-menus')
 
-  console.log('Querying wordpress menus from ', baseUrl)
+  let doAllowCache = allowCache
+  if (allowCache) {
+    const cacheTimestamp = cache.get('cacheTime')
+    if (cacheTimestamp) {
+      const cacheDate = new Date(cacheTimestamp)
+      const cacheMillis = cacheDate.getTime()
+      const ageInMillis = Date.now() - cacheMillis
+      doAllowCache = ageInMillis < (maxCacheDurationSeconds * 1000)
+    }
+  }
+
+  reporter.info('Querying wordpress menus from ', baseUrl)
 
   for (const language of languages) {
     // fetch the menu
@@ -86,12 +113,11 @@ exports.sourceNodes = async ({ actions, createNodeId, createContentDigest }, con
     if (enableWpml) {
       url += `?wpml_language=${language}`
     }
-    const result = await fetch(url)
-    const locations = await result.json()
+    let locations = await getCachedOrFetch(cache, doAllowCache, url, reporter, true)
 
     for (const location of Object.keys(locations)) {
-      console.log('processing location', location, 'of', url, 'in', language)
-      const enhancedLocation = await processLocation(locations[location], language, baseUrl, wordpressUrl)
+      reporter.verbose(`processing location ${location} of  ${url} in language ${language}`)
+      const enhancedLocation = await processLocation(cache, doAllowCache, locations[location], language, baseUrl, wordpressUrl, reporter)
       // now we have the location plus menu
       const node = createNodeData(enhancedLocation, language, createNodeId, createContentDigest)
       createNode(node)

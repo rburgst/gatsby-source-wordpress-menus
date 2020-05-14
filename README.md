@@ -41,6 +41,8 @@ module.exports = {
         wordpressUrl: "https://your-wordpress-site.com",
         languages: ["de", "en"],
         enableWpml: true,
+        allowCache: true,
+        maxCacheDurationSeconds: 60 * 60 * 24
       },
     },
     ...
