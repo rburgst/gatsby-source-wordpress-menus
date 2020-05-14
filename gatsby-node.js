@@ -105,7 +105,7 @@ exports.sourceNodes = async ({ actions, getCache, createNodeId, createContentDig
     }
   }
 
-  reporter.info(`Querying wordpress menus from ${baseUrl}, cache allowed ${doallowCache}`)
+  reporter.info(`Querying wordpress menus from ${baseUrl}, cache allowed ${doAllowCache}`)
 
   for (const language of languages) {
     // fetch the menu
