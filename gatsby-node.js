@@ -50,7 +50,7 @@ async function processLocation(cache, doAllowCache, location, language, baseUrl,
 }
 
 function createNodeData(location, language, createNodeId, createContentDigest) {
-  const nodeId = createNodeId(`wp-menu-location-${location.slug}-term-${location.menu.term_id}`)
+  const nodeId = createNodeId(`wp-menu-location-${location.slug}-term-${location.menu.term_id}-${language}`)
   const nodeContent = JSON.stringify(location)
   const nodeData = Object.assign({}, location, {
     id: nodeId,
@@ -66,13 +66,24 @@ function createNodeData(location, language, createNodeId, createContentDigest) {
 }
 
 async function getCachedOrFetch(cache, doAllowCache, url, reporter, doSetCacheTimestamp = false) {
-  let locations = doAllowCache && await cache.get(url)
+  const cachedValue = cache.get(url)
+  let locations = doAllowCache && await cachedValue
   if (!locations) {
-    const result = await fetch(url)
-    locations = await result.json()
-    await cache.set(url, locations)
-    if (doSetCacheTimestamp) {
-      await cache.set('cacheTime', new Date().toISOString())
+    reporter.verbose(`  loading ${url} from server`)
+
+    try {
+      const result = await fetch(url)
+      locations = await result.json()
+      await cache.set(url, locations)
+      if (doSetCacheTimestamp) {
+        await cache.set('cacheTime', new Date().toISOString())
+      }
+    } catch(e) {
+      reporter.error(`error loading menus from url ${url}`, e)
+      if (cachedValue) {
+        reporter.info(`have cached value ${url}, a cached value is better than nothing`)
+        return cachedValue
+      }
     }
   } else {
     reporter.info(`  got ${url} from cache`)
