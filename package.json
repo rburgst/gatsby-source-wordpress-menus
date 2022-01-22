@@ -20,7 +20,7 @@
     "WPML"
   ],
   "dependencies": {
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^3.1.1"
   },
   "devDependencies": {
     "prettier": "^2.0.4"
